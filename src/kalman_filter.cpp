@@ -1,3 +1,4 @@
+#include <iostream>
 #include "kalman_filter.h"
 
 using Eigen::MatrixXd;
@@ -22,7 +23,7 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
 
 void KalmanFilter::Predict() {
   /**
-  TODO:
+  TODO: DONE
     * predict the state
   */
   x_ = F_ * x_;
@@ -32,7 +33,7 @@ void KalmanFilter::Predict() {
 
 void KalmanFilter::Update(const VectorXd &z) {
   /**
-  TODO:
+  TODO: DONE
     * update the state by using Kalman Filter equations
   */
   VectorXd z_pred = H_ * x_;
@@ -50,14 +51,39 @@ void KalmanFilter::Update(const VectorXd &z) {
   P_ = (I - K * H_) * P_;
 }
 
+void KalmanFilter::normalize_phi(Eigen::VectorXd &y) {
+  while (y[1] > M_PI || y[1] < -M_PI) {
+    if (y[1] > M_PI) {
+      y[1] -= 2*M_PI;
+    } else if (y[1] < -M_PI) {
+      y[1] += 2*M_PI;
+    }
+  }
+}
+
+Eigen::VectorXd KalmanFilter::h(const VectorXd &x) {
+  float px = x_[0];
+  float py = x_[1];
+  float vx = x_[2];
+  float vy = x_[3];
+  float rho = sqrt(px*px + py*py);
+  float phi = atan2(py,px);
+  float rho_dot = (px*vx + py*vy)/sqrt(px*px + py*py);
+  
+  VectorXd z_pred(3);
+  z_pred << rho, phi, rho_dot;
+  
+  return z_pred;
+}
+
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
   /**
-  TODO: DOING
+  TODO: DONE
     * update the state by using Extended Kalman Filter equations
    */
-  // H를 자코비안으로 바꾸는 작업 필요 
-  VectorXd z_pred = H_ * x_;
+  VectorXd z_pred = h(x_);
   VectorXd y = z - z_pred;
+  normalize_phi(y);
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();

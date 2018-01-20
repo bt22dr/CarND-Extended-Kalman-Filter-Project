@@ -63,6 +63,9 @@ public:
    * @param z The measurement at k+1
    */
   void UpdateEKF(const Eigen::VectorXd &z);
+  
+  Eigen::VectorXd h(const Eigen::VectorXd &x);
+  void normalize_phi(Eigen::VectorXd &y);
 
 };
 
